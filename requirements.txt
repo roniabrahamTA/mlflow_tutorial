@@ -1,9 +1,6 @@
 numpy
 pandas
 scikit-learn
-mlflow[extra]
+mlflow
 jupyter
 pipfile
-psycopg2
-tensorflow
-keras

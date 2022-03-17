@@ -1,15 +1,12 @@
-import os
-import warnings
 import sys
-
-import pandas as pd
-import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import ElasticNet
+import warnings
 
 import mlflow
-import mlflow.sklearn
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import ElasticNet
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 
 def eval_metrics(actual, pred):
@@ -44,6 +41,18 @@ if __name__ == "__main__":
     alpha = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5
     l1_ratio = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
 
+    # configure the tracking server uri for logging
+    remote_tracking_server_uri = "http://localhost:8000"
+    registry_uri = ".mlruns/"
+    artifact_loc = ".mlruns/"
+    experiment = "ElasticNetExperiments"
+
+    # configure mlflow experiements
+    # create a new experiment and setting it as the default one
+    client = mlflow.tracking.MlflowClient(remote_tracking_server_uri)
+    client.create_experiment(experiment)
+    mlflow.set_experiment(experiment)
+
     with mlflow.start_run():
         lr = ElasticNet(alpha=alpha, l1_ratio=l1_ratio, random_state=42)
         lr.fit(train_x, train_y)
@@ -51,6 +60,8 @@ if __name__ == "__main__":
         predicted_qualities = lr.predict(test_x)
 
         (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
+
+        print("Artifact URI:", mlflow.get_artifact_uri())
 
         print("Elasticnet model (alpha=%f, l1_ratio=%f):" % (alpha, l1_ratio))
         print("  RMSE: %s" % rmse)
